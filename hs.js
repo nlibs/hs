@@ -443,6 +443,6 @@ exports.end = end;
 exports.enable_auth = function(key, expire) { AUTH.init(key, expire); }
 exports.create_token = function(payload) { return AUTH.encode(payload); }
 exports.init = init;
-exports.init2= init2;
+exports.init2 = init2;
 exports.write_config_file = write_config_file;
 
