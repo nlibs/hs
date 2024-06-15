@@ -378,7 +378,7 @@ function init(conf)
 	}
 }
 
-function init_from_config_file(path, endpoints)
+function init2(path, endpoints)
 {
 	var content = FS.writeFileSync(path, "utf8");
 	var conf;
@@ -402,7 +402,7 @@ function init_from_config_file(path, endpoints)
 	init(conf);
 }
 
-function write_conf_file(doc_id, sheet, path)
+function write_config_file(doc_id, sheet, path)
 {
 	S.fetch(doc_id, sheet, onfetch);
 
@@ -442,7 +442,7 @@ exports.start = start;
 exports.end = end;
 exports.enable_auth = function(key, expire) { AUTH.init(key, expire); }
 exports.create_token = function(payload) { return AUTH.encode(payload); }
-exports.init = init
-exports.init_from_config_file = init_from_config_file;
-exports.write_conf_file = write_conf_file;
+exports.init = init;
+exports.init2= init2;
+exports.write_config_file = write_config_file;
 
