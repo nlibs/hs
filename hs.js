@@ -380,7 +380,7 @@ function init(conf)
 
 function init2(path, endpoints)
 {
-	var content = FS.writeFileSync(path, "utf8");
+	var content = FS.readFileSync(path, "utf8");
 	var conf;
 	try{
 		conf = JSON.parse(content);
