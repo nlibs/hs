@@ -34,7 +34,16 @@ function finalize(e, res, q, data)
 		}
 	}
 
-	e.fn(q, res, data);
+	var r = e.fn(q, res, data);
+	if (typeof r == "string")
+	{
+		end(res, 200, r);
+	}
+	else if (Array.isArray(r))
+	{
+		var [data, status, headers] = r;
+		end(res, status, data, headers);
+	}
 }
 
 function handle_get(e, app)
