@@ -39,10 +39,17 @@ function finalize(e, res, q, data)
 	{
 		end(res, 200, r);
 	}
-	else if (Array.isArray(r))
+	else if (typeof r == "object")
 	{
-		var [data, status, headers] = r;
-		end(res, status, data, headers);
+		if (Array.isArray(r))
+		{
+			var [data, status, headers] = r;
+			end(res, status, data, headers);
+		}
+		else
+		{
+			end(res, 200, JSON.stringify(r));
+		}
 	}
 }
 
