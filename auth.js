@@ -2,11 +2,9 @@ const crypto = require('crypto');
 
 // Configuration
 let SECRET_KEY = "my_super_secret_key_change_in_production!";
-let DEFAULT_EXPIRATION = 86400; // 1 day in seconds
 
-function init(secretKey, defaultExpiration) {
+function init(secretKey) {
   SECRET_KEY = secretKey;
-  DEFAULT_EXPIRATION = defaultExpiration;
 }
 
 function secureEncode(payloadArray, secret = SECRET_KEY) {
@@ -26,7 +24,7 @@ function secureEncode(payloadArray, secret = SECRET_KEY) {
   return `${mac}${dataBase64}`;
 }
 
-function secureDecode(token, secret = SECRET_KEY, expiration = DEFAULT_EXPIRATION) {
+function secureDecode(token, secret = SECRET_KEY) {
   if (token.length < 32) {
     throw new Error("Invalid token format");
   }
@@ -54,7 +52,7 @@ function secureDecode(token, secret = SECRET_KEY, expiration = DEFAULT_EXPIRATIO
   const userPayloadArray = fullPayloadArray.slice(1);
 
   const currentTime = Math.floor(Date.now() / 1000);
-  if (currentTime - timestamp > expiration) {
+  if (currentTime - timestamp > 86400) {
     throw new Error("Token expired");
   }
 

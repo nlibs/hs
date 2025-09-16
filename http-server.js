@@ -2,18 +2,19 @@ const AUTH = require("./auth.js");
 
 var endpoints = [];
 
-exports.post = function(path, fn, is_authorized) {
+exports.post = function(path, fn, is_authorized, mandatory, optional) {
   if (typeof is_authorized == "undefined")
     is_authorized = false;
+  if (!mandatory) mandatory = [];
+  if (!optional) optional = [];
 
-  endpoints.push([path, fn, is_authorized]);
+  endpoints.push([path, fn, is_authorized, mandatory, optional]);
 }
 
-exports.start = function(port, host, authKey, authExpire) {
+exports.start = function(port, authKey) {
   // Initialize auth with defaults or provided values
   const defaultKey = authKey || "default_secret_key_change_in_production";
-  const defaultExpire = authExpire || 86400;
-  AUTH.init(defaultKey, defaultExpire);
+  AUTH.init(defaultKey);
 
   var UW = require('uWebSockets.js');
   var app = UW.App();
@@ -39,7 +40,30 @@ exports.start = function(port, host, authKey, authExpire) {
             }
           }
 
-          e[1](obj, res, token_payload, req, url);
+          // Validate mandatory fields
+          var mandatory = e[3];
+          for (var i = 0; i < mandatory.length; i++) {
+            var key = mandatory[i];
+            if (typeof obj[key] === "undefined") {
+              end(res, 400, '{"error":"missing field ' + key + '"}');
+              return;
+            }
+          }
+
+          // Build validated object with mandatory and optional
+          var validated_obj = {};
+          for (var i = 0; i < mandatory.length; i++) {
+            validated_obj[mandatory[i]] = obj[mandatory[i]];
+          }
+          var optional = e[4];
+          for (var i = 0; i < optional.length; i++) {
+            var key = optional[i];
+            if (typeof obj[key] !== "undefined") {
+              validated_obj[key] = obj[key];
+            }
+          }
+
+          e[1](validated_obj, res, token_payload, req, url);
         },
         function() {
           end(res, 500, '{"error":"internal server error"}');
@@ -47,16 +71,11 @@ exports.start = function(port, host, authKey, authExpire) {
     });
   }
 
-  if (typeof host == "undefined")
-    app.listen(port, onlisten);
-  else
-    app.listen(host, port, onlisten);
+  app.listen(port, onlisten);
 
   function onlisten(p) {
     if (p) {
       console.log("http-server started: " + port);
-      if (typeof host != "undefined")
-        console.log("http-server on host: " + host);
       console.log("number of endpoints registered: " + endpoints.length);
     } else {
       throw "can't listen port " + port;
@@ -146,24 +165,3 @@ exports.create_token = function(payload) {
 
 exports.end = end;
 
-function parse_fields(q, res, mandatory_keys, optional_keys) {
-  var obj = {};
-  for (var i = 0; i < mandatory_keys.length; i++) {
-    var key = mandatory_keys[i];
-    if (typeof q[key] === "undefined") {
-      end(res, 401, '{"error":"missing field ' + key + '"}');
-      return false;
-    }
-    obj[key] = q[key];
-  }
-
-  for (var i = 0; i < optional_keys.length; i++) {
-    var key = optional_keys[i];
-    if (typeof q[key] !== "undefined") {
-      obj[key] = q[key];
-    }
-  }
-  return obj;
-}
-
-exports.validate = parse_fields;
