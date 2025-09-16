@@ -30,17 +30,17 @@ function secureEncode(payloadArray, secret = SECRET_KEY) {
   hmac.update(dataBase64);
   const mac = hmac.digest('hex').substring(0, 32); // 32 hex chars = 16 bytes = 128 bits
 
-  // Format: [32-char-hex-HMAC]_[base64url-encoded-data]
-  return `${mac}_${dataBase64}`;
+  // Format: [32-char-hex-HMAC][base64url-encoded-data]
+  return `${mac}${dataBase64}`;
 }
 
 function secureDecode(token, secret = SECRET_KEY, expiration = DEFAULT_EXPIRATION) {
-  const parts = token.split('_');
-  if (parts.length !== 2) {
+  if (token.length < 32) {
     throw new Error("Invalid token format");
   }
 
-  const [receivedMac, dataBase64] = parts;
+  const receivedMac = token.substring(0, 32);
+  const dataBase64 = token.substring(32);
 
   // Recalculate the MAC using the same secure method
   const hmac = crypto.createHmac('sha256', secret);

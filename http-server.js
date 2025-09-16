@@ -146,8 +146,6 @@ exports.create_token = function(payload) {
 
 exports.end = end;
 
-
-
 function parse_fields(q, res, mandatory_keys, optional_keys) {
   var obj = {};
   for (var i = 0; i < mandatory_keys.length; i++) {
