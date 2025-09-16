@@ -5,16 +5,8 @@ H.start(2323);
 var counter = 0;
 function handler(q, res)
 {
-	var mandatory = 
-	{
-		"x": "int",
-		"y": "number"
-	}
-
-	var optional = 
-	{
-		"z": "int"
-	}
+	var mandatory = ["x", "y"]
+	var optional =  ["z"]
 
 	q = H.validate(q, res, mandatory, optional);
 	if (!q)

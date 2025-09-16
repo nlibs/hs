@@ -12,7 +12,7 @@ exports.post = function(path, fn, is_authorized) {
 exports.start = function(port, host, authKey, authExpire) {
   // Initialize auth with defaults or provided values
   const defaultKey = authKey || "default_secret_key_change_in_production";
-  const defaultExpire = authExpire || 86400; // 1 hour
+  const defaultExpire = authExpire || 86400;
   AUTH.init(defaultKey, defaultExpire);
 
   var UW = require('uWebSockets.js');
@@ -146,79 +146,26 @@ exports.create_token = function(payload) {
 
 exports.end = end;
 
-function value_check(condition_array, res) {
-  for (var i = 0; i < condition_array.length; i++) {
-    if (!condition_array[i]) {
-      end(res, 400, '{"error":"bad value"}');
-      return false;
-    }
-  }
-  return true;
-}
 
-function is_type_valid(type, value, res) {
-  switch (type) {
-    case "int":
-      value = Number(value);
-      if (isNaN(value)) return false;
-      if (!Number.isInteger(value)) return false;
-      break;
-    case "number":
-      value = Number(value);
-      if (isNaN(value)) return false;
-      break;
-  }
-  return true;
-}
 
-function parse_fields(q, res, keys, optional_keys) {
+function parse_fields(q, res, mandatory_keys, optional_keys) {
   var obj = {};
-  for (var i in keys) {
-    if (typeof q[i] === "undefined") {
-      end(res, 401, '{"error":"missing field ' + i + '"}');
+  for (var i = 0; i < mandatory_keys.length; i++) {
+    var key = mandatory_keys[i];
+    if (typeof q[key] === "undefined") {
+      end(res, 401, '{"error":"missing field ' + key + '"}');
       return false;
     }
-
-    var t = keys[i];
-    if (!is_type_valid(t, q[i])) {
-      var body = {
-        "error": "invalid_type",
-        "field": i,
-        "expected_type": t,
-        "received_value": q[i]
-      };
-      end(res, 401, JSON.stringify(body));
-      return false;
-    }
-
-    if (t == "int" || t == "number")
-      obj[i] = Number(q[i]);
-    else
-      obj[i] = q[i];
+    obj[key] = q[key];
   }
 
-  for (var i in optional_keys) {
-    if (typeof q[i] === "undefined") continue;
-
-    var t = optional_keys[i];
-    if (!is_type_valid(t, q[i])) {
-      var body = {
-        "error": "invalid_type",
-        "field": i,
-        "expected_type": t,
-        "received_value": q[i]
-      };
-      end(res, 401, JSON.stringify(body));
-      return false;
+  for (var i = 0; i < optional_keys.length; i++) {
+    var key = optional_keys[i];
+    if (typeof q[key] !== "undefined") {
+      obj[key] = q[key];
     }
-
-    if (t == "int" || t == "number")
-      obj[i] = Number(q[i]);
-    else
-      obj[i] = q[i];
   }
   return obj;
 }
 
 exports.validate = parse_fields;
-exports.value_check = value_check;
