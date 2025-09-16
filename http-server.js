@@ -66,6 +66,7 @@ exports.start = function(port, host, authKey, authExpire) {
 
 function read_json(res, cb, err) {
   let buffer;
+  let alreadyClosed = false;
   res.onData((ab, isLast) => {
     let chunk = Buffer.from(ab);
     if (isLast) {
@@ -74,7 +75,8 @@ function read_json(res, cb, err) {
         try {
           json = JSON.parse(Buffer.concat([buffer, chunk]));
         } catch (e) {
-          res.close();
+          alreadyClosed = true;
+          end(res, 401, '{"error":"invalid json"}');
           return;
         }
         cb(json);
@@ -82,7 +84,8 @@ function read_json(res, cb, err) {
         try {
           json = JSON.parse(chunk);
         } catch (e) {
-          res.close();
+          alreadyClosed = true;
+          end(res, 401, '{"error":"invalid json"}');
           return;
         }
         cb(json);
@@ -96,7 +99,11 @@ function read_json(res, cb, err) {
     }
   });
 
-  res.onAborted(err);
+  res.onAborted(() => {
+    if (!alreadyClosed) {
+      err();
+    }
+  });
 }
 
 var status_map = {
@@ -168,7 +175,7 @@ function parse_fields(q, res, keys, optional_keys) {
   var obj = {};
   for (var i in keys) {
     if (typeof q[i] === "undefined") {
-      end(res, 400, '{"error":"missing field ' + i + '"}');
+      end(res, 401, '{"error":"missing field ' + i + '"}');
       return false;
     }
 
@@ -180,7 +187,7 @@ function parse_fields(q, res, keys, optional_keys) {
         "expected_type": t,
         "received_value": q[i]
       };
-      end(res, 400, JSON.stringify(body));
+      end(res, 401, JSON.stringify(body));
       return false;
     }
 
@@ -201,7 +208,7 @@ function parse_fields(q, res, keys, optional_keys) {
         "expected_type": t,
         "received_value": q[i]
       };
-      end(res, 400, JSON.stringify(body));
+      end(res, 401, JSON.stringify(body));
       return false;
     }
 
