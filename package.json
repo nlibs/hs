@@ -1,9 +1,8 @@
 {
   "dependencies": {
-    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.43.0",
-    "sheet": "github:/nlibs/sheet"
+    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.52.0"
   },
-  "main": "./hs.js",
+  "main": "./http-server.js",
   "name": "@nlibs/hs",
   "version": "1.0.0",
   "license": "MIT"

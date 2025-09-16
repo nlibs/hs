@@ -1,1 +1,2 @@
-version 2 of http-server
+an opinionated http server library 
+that utilizes uWebSockets.js under the hood.
